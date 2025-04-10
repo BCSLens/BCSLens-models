@@ -1,6 +1,12 @@
 # Use the official Python image from the Docker Hub
 FROM python:3.9-slim
 
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -18,6 +24,7 @@ EXPOSE 5000
 
 # Set the environment variable to indicate the app's environment
 ENV FLASK_APP=app.py
+ENV FLASK_ENV=development
 
 # Run the Flask application
 CMD ["flask", "run", "--host=0.0.0.0"]
