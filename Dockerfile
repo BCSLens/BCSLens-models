@@ -1,31 +1,27 @@
-# Use the official Node.js image
-FROM node:18
+# Use the official Python image
+FROM python:3.9-slim
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install Python and required dependencies
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
+# Install system dependencies
+RUN apt-get update && apt-get install -y python3-pip python3-venv
 
 # Create a Python virtual environment
 RUN python3 -m venv /env
 
-# Activate the virtual environment and install Python dependencies
+# Activate the virtual environment and upgrade pip
 RUN /env/bin/pip install --upgrade pip
+
+# Copy the requirements.txt file and install Python dependencies
 COPY requirements.txt ./
 RUN /env/bin/pip install -r requirements.txt
-
-# Copy package.json and package-lock.json first to leverage Docker caching
-COPY package*.json ./
-
-# Install Node.js dependencies
-RUN npm install
 
 # Copy the rest of the application files
 COPY . .
 
-# Expose the port that the app runs on
+# Expose the port that the Flask app will run on
 EXPOSE 5000
 
-# Set the entry point to run both the Flask app and the YOLO inference script
-CMD /env/bin/python yolo/yolo_inference.py & node index.js
+# Set the entry point to run the Flask app and the YOLO inference script
+CMD /env/bin/python yolo/yolo_inference.py & flask run --host=0.0.0.0
