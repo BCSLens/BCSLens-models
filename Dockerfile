@@ -1,27 +1,29 @@
-# Use the official Python image
 FROM python:3.9-slim
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y python3-pip python3-venv
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create a Python virtual environment
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set up a virtual environment (optional but recommended)
 RUN python3 -m venv /env
 
-# Activate the virtual environment and upgrade pip
-RUN /env/bin/pip install --upgrade pip
+# Activate the virtual environment and install dependencies in it
+RUN /env/bin/pip install --no-cache-dir -r requirements.txt
 
-# Copy the requirements.txt file and install Python dependencies
-COPY requirements.txt ./
-RUN /env/bin/pip install -r requirements.txt
-
-# Copy the rest of the application files
+# Copy the application files
 COPY . .
 
-# Expose the port that the Flask app will run on
+# Expose port for Flask
 EXPOSE 5000
 
-# Set the entry point to run the Flask app and the YOLO inference script
-CMD /env/bin/python yolo/yolo_inference.py & flask run --host=0.0.0.0
+# Start Flask app
+CMD ["/env/bin/python3", "yolo/yolo_inference.py", "&", "/env/bin/flask", "run", "--host=0.0.0.0"]
