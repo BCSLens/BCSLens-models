@@ -1,3 +1,6 @@
 ultralytics
 opencv-python
 flask
+torch
+scikit-learn
+torch torchvision torchaudio
