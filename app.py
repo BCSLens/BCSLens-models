@@ -99,7 +99,7 @@ def classify_view_api():
 
 model3_bcs_path = 'final/bcs_prediction_model_97.h5'
 model3_bcs = load_model(model3_bcs_path)
-bcs_classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+bcs_classes = ['2.50', '2.75', '3.00', '3.25', '3.50', '3.75', '4', '4.25', '4.50']
 
 @app.route('/predict-bcs', methods=['POST'])
 def predict_bcs_api():
