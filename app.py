@@ -62,9 +62,9 @@ model2_group_view = load_model(model2_group_view_path)
 model2_left_right_view = load_model(model2_left_right_view_path)
 model2_front_back_view = load_model(model2_front_back_view_path)
 
-group_view_class_names = ['LeftRight', 'FrontBack', 'Top']
+group_view_class_names = ['FrontBack', 'LeftRight', 'Top']
 left_right_class_names = ['Left', 'Right']
-front_back_class_names = ['Front', 'Back']
+front_back_class_names = ['Back', 'Front']
 
 def prepare_image_from_bytes(img_bytes, target_size=(224, 224)):
     img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
