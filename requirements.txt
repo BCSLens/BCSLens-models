@@ -2,3 +2,4 @@ ultralytics
 opencv-python
 flask
 scikit-learn
+tensorflow
