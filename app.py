@@ -89,21 +89,25 @@ def predict_view():
         img_base64 = base64.b64encode(f.read()).decode("utf-8")
 
     # Prompt แบบ step-by-step
-    prompt = """You are an expert in animal anatomy and image analysis.
+    prompt = prompt = """
+    You are an expert animal image classifier.
 
-    You will analyze the uploaded image and determine the view (camera angle) of the animal. Follow these steps carefully:
+    Task: Look at the uploaded image and identify the viewing direction of the animal based on which side of its body is visible.
 
-    Step 1: Identify the animal in the image.
-    Step 2: Locate the head, tail, and main body orientation.
-    Step 3: Determine which side of the animal is mostly visible.
-    Step 4: Infer the camera angle relative to the animal based on head and tail orientation.
+    Definitions:
 
-    Rules:
-    - Only answer with ONE word: front, back, left, right, or top.
-    - Do NOT include any explanation, extra words, or punctuation.
-    - Focus on visible body features to make the decision.
+    front: animal facing the camera (head or face most visible)
 
-    Answer:"""
+    back: animal facing away from the camera (rear or tail most visible)
+
+    left: animal’s head pointing left and tail to the right (left body side visible)
+
+    right: animal’s head pointing right and tail to the left (right body side visible)
+
+    top: animal viewed from above (back visible, legs on both sides)
+
+    Respond with only one word: front, back, left, right, or top.
+    """
 
 
     # เรียก Ollama API
@@ -208,109 +212,54 @@ def predict_view():
 @app.route('/predict_bcs', methods=['POST'])
 def predict_bcs():
     """
-    Predict BCS (Body Condition Score) from 4 views: left, right, back, top
+    Predict BCS (Body Condition Score) from any number of images.
+    AI first predicts descriptive category (TOO THIN, IDEAL, OBESE),
+    then maps it to numeric range: 1-3, 4-6, 7-9.
     """
-    # รับรูปภาพ 4 ด้าน
-    left_img = request.files.get('left')
-    right_img = request.files.get('right')
-    back_img = request.files.get('back')
-    top_img = request.files.get('top')
-    
-    # ตรวจสอบว่ามีรูปครบทั้ง 4 ด้าน
-    if not all([left_img, right_img, back_img, top_img]):
+    uploaded_files = request.files
+    if not uploaded_files:
         return jsonify({
-            'error': 'Missing images', 
-            'details': 'Please provide all 4 views: left, right, back, top'
+            'error': 'No images uploaded',
+            'details': 'Please provide at least one image'
         }), 400
 
-    # บันทึกและ process รูปทั้ง 4 ด้าน
     processed_images = {}
     image_base64 = {}
-    
-    views = {
-        'left': left_img,
-        'right': right_img,
-        'back': back_img,
-        'top': top_img
-    }
-    
+
     try:
-        for view_name, img_file in views.items():
-            # บันทึกไฟล์
+        for view_name, img_file in uploaded_files.items():
             filepath = os.path.join(UPLOAD_FOLDER, f"bcs_{view_name}_{img_file.filename}")
             img_file.save(filepath)
-            
-            # Resize รูปภาพ
-            img = Image.open(filepath)
-            img = img.convert("RGB")
+
+            img = Image.open(filepath).convert("RGB")
             img = img.resize((512, 512))
             img.save(filepath)
-            
+
             processed_images[view_name] = filepath
-            
-            # Encode เป็น base64
+
             with open(filepath, "rb") as f:
                 image_base64[view_name] = base64.b64encode(f.read()).decode("utf-8")
                 
     except Exception as e:
         return jsonify({'error': 'Failed to process images', 'details': str(e)}), 500
 
-    # สร้าง prompt สำหรับ BCS assessment
-    prompt = f"""You are a veterinary expert analyzing animal body condition. 
+    # ✅ Prompt ให้ AI ตอบเป็นคำศัพท์
+    prompt = "You are a veterinary expert. Look at the animal images and classify its body condition into ONE of these categories:\n\n"
+    prompt += "TOO THIN: Ribs, spine, hips visible. Very little fat. Severe waist and abdominal tuck.\n"
+    prompt += "IDEAL: Ribs can be felt but not visible. Waist visible. Slight abdominal tuck. Balanced body.\n"
+    prompt += "OBESE: Ribs hard to feel. Heavy fat deposits. No waist or abdominal tuck.\n\n"
+    prompt += "Answer with ONLY ONE of these words: TOO THIN, IDEAL, or OBESE.\n"
+    prompt += "Your answer:"
 
-I will show you 4 images of the same animal from different angles:
-1. Left side view
-2. Right side view  
-3. Back view
-4. Top view (from above)
-
-Analyze the animal's body condition and determine the Body Condition Score (BCS) on a scale of 1-9:
-
-BCS 1-3 (Underweight):
-- Ribs, spine, and hip bones are very visible
-- No fat coverage
-- Severe muscle wasting
-
-BCS 4-5 (Ideal):
-- Ribs can be felt but not prominently visible
-- Visible waist when viewed from above
-- Slight abdominal tuck
-
-BCS 6-7 (Overweight):
-- Ribs difficult to feel
-- Waist barely visible
-- Abdominal fat present
-
-BCS 8-9 (Obese):
-- Ribs cannot be felt
-- No waist visible
-- Heavy fat deposits
-
-Based on ALL 4 images, provide:
-1. The BCS score (1-9)
-2. Brief explanation of your assessment
-3. Which view was most helpful
-
-Format your answer as:
-BCS: [number]
-Reason: [explanation]
-Key view: [left/right/back/top]"""
-
-    # เรียก Ollama API พร้อมรูป 4 ด้าน
     try:
         response = requests.post(
             "http://127.0.0.1:11434/api/generate",
             json={
                 "model": "llava:latest",
                 "prompt": prompt,
-                "images": [
-                    image_base64['left'],
-                    image_base64['right'],
-                    image_base64['back'],
-                    image_base64['top']
-                ],
-                "temperature": 0.3,
-                "num_predict": 200
+                "images": list(image_base64.values()),
+                "temperature": 0.1,
+                "num_predict": 15
             },
             stream=True,
             timeout=180
@@ -325,61 +274,22 @@ Key view: [left/right/back/top]"""
                         result_text += data["response"]
                 except json.JSONDecodeError:
                     continue
-                    
+
     except Exception as e:
         return jsonify({'error': 'Failed to call Ollama API', 'details': str(e)}), 500
 
-    # Parse ผลลัพธ์
-    import re
-    
-    bcs_score = None
-    reason = ""
-    key_view = ""
-    
-    # หา BCS score
-    bcs_pattern = r'BCS[\s:]+(\d+(?:\.\d+)?)'
-    bcs_match = re.search(bcs_pattern, result_text, re.IGNORECASE)
-    if bcs_match:
-        bcs_score = float(bcs_match.group(1))
-    else:
-        # ลองหาตัวเลขที่อยู่ในช่วง 1-9
-        numbers = re.findall(r'\b([1-9])\b', result_text)
-        if numbers:
-            bcs_score = int(numbers[0])
-    
-    # หา Reason
-    reason_pattern = r'Reason[\s:]+(.*?)(?=Key view|$)'
-    reason_match = re.search(reason_pattern, result_text, re.IGNORECASE | re.DOTALL)
-    if reason_match:
-        reason = reason_match.group(1).strip()
-    else:
-        # ถ้าไม่เจอ ใช้ข้อความทั้งหมด
-        reason = result_text.strip()
-    
-    # หา Key view
-    key_view_pattern = r'Key view[\s:]+(left|right|back|top)'
-    key_view_match = re.search(key_view_pattern, result_text, re.IGNORECASE)
-    if key_view_match:
-        key_view = key_view_match.group(1).lower()
-    
-    # กำหนดระดับ BCS
-    bcs_category = "unknown"
-    if bcs_score:
-        if bcs_score <= 3:
-            bcs_category = "underweight"
-        elif bcs_score <= 5:
-            bcs_category = "ideal"
-        elif bcs_score <= 7:
-            bcs_category = "overweight"
-        else:
-            bcs_category = "obese"
+    # ✅ Mapping AI keyword -> numeric range
+    result_upper = result_text.strip().upper()
+    mapping = {
+        "TOO THIN": "1-3",
+        "IDEAL": "4-6",
+        "OBESE": "7-9"
+    }
+    bcs_range = mapping.get(result_upper, "4-6")  # default to IDEAL
 
     return jsonify({
-        "bcs_score": bcs_score,
-        "bcs_category": bcs_category,
-        "reason": reason,
-        "key_view": key_view,
-        "raw_response": result_text.strip()
+        "bcs_category": result_upper,
+        "bcs_range": bcs_range
     })
 
 if __name__ == '__main__':
