@@ -76,7 +76,7 @@ Create a models/ directory and download the pre-trained model files into it. The
 |------------|------------------|---------|
 | Group View Classifier | [Download](https://drive.google.com/file/d/1Zt411ST93FLY47F9RjIiVU8FcAAaU6yM/view?usp=drive_link) | `models/FB_LR_T_EfficientNetB3.h5` |
 | Left/Right Classifier | [Download](https://drive.google.com/file/d/1OhdsMDi9V8zFJV78rhGM47s_JmevciqO/view?usp=drive_link) | `models/L_R_EfficientNetB4.h5` |
-| Front/Back Classifier | [Download](https://drive.google.com/file/d/1ME5LkUR3zlppdneFrzYcMECt-Jjsoa-f/view?usp=drive_link) | `models/F_B_DenseNet121.h5` |
+| Front/Back Classifier | [Download](https://drive.google.com/file/d/1ME5LkUR3zlppdneFrzYcMECt-Jjsoa-f/view?usp=drive_link) | `models/F_B_ResNet101.h5` |
 | Multi-View BCS Model | [Download](https://drive.google.com/file/d/1sOOVUKQSzdHggq0in67U2VgYFLRbOW9n/view?usp=drive_link) | `models/bcs_model.h5` |
 
 
@@ -144,7 +144,7 @@ The view classification uses a hierarchical approach:
 
 1. **Stage 1**: Group Classification (FrontBack / LeftRight / Top) - EfficientNetB3
 2. **Stage 2a**: If LeftRight → Classify as Left or Right - EfficientNetB4
-3. **Stage 2b**: If FrontBack → Classify as Front or Back - DenseNet121
+3. **Stage 2b**: If FrontBack → Classify as Front or Back - ResNet101
 
 ### Multi-View BCS Model
 
