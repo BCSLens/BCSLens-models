@@ -7,9 +7,6 @@ from ultralytics import YOLO
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.mobilenet import preprocess_input
-import base64
-import requests
-import json
 
 app = Flask(__name__)
 
@@ -17,7 +14,7 @@ model_yolo = YOLO("yolo12n.pt")
 
 model2_group_view_path = 'models/FB_LR_T_EfficientNetB3.h5'
 model2_left_right_view_path = 'models/L_R_EfficientNetB4.h5'
-model2_front_back_view_path = 'models/F_B_ResNet101_93.h5'
+model2_front_back_view_path = 'models/F_B_MobileNetV2.h5'
 
 model2_group_view = load_model(model2_group_view_path)
 model2_left_right_view = load_model(model2_left_right_view_path)
@@ -27,7 +24,7 @@ group_view_class_names = ['FrontBack', 'LeftRight', 'Top']
 left_right_class_names = ['Left', 'Right']
 front_back_class_names = ['Back', 'Front']
 
-model_bcs = load_model("models/bcs_model.h5")
+model_bcs = load_model("models/best_bcs_model_MobileNet_smote.h5")
 
 def prepare_image_from_bytes(img_bytes, target_size):
     """Convert raw image bytes to preprocessed NumPy array."""
