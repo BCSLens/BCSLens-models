@@ -77,7 +77,7 @@ Create a models/ directory and download the pre-trained model files into it. The
 | Group View Classifier | [Download](https://drive.google.com/file/d/1Zt411ST93FLY47F9RjIiVU8FcAAaU6yM/view?usp=drive_link) | `models/FB_LR_T_EfficientNetB3.h5` |
 | Left/Right Classifier | [Download](https://drive.google.com/file/d/1OhdsMDi9V8zFJV78rhGM47s_JmevciqO/view?usp=drive_link) | `models/L_R_EfficientNetB4.h5` |
 | Front/Back Classifier | [Download](https://drive.google.com/file/d/16nxgXpRT2kCZ1CRx3zMouLQ0t_GhZpyk/view?usp=sharing) | `models/F_B_MobileNetV2.h5` |
-| Multi-View BCS Model | [Download](https://drive.google.com/file/d/1sOOVUKQSzdHggq0in67U2VgYFLRbOW9n/view?usp=drive_link) | `models/bcs_model.h5` |
+| Multi-View BCS Model | [Download](https://drive.google.com/file/d/1K-9XCy7owXdcOYmALeUN4sS1vx9iRXZA/view?usp=drive_link) | `models/bcs_model_MobileNetV2.h5` |
 
 
 ### 5. Run the Application
