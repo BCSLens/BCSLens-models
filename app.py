@@ -24,7 +24,7 @@ group_view_class_names = ['FrontBack', 'LeftRight', 'Top']
 left_right_class_names = ['Left', 'Right']
 front_back_class_names = ['Back', 'Front']
 
-model_bcs = load_model("models/best_bcs_model_MobileNet_smote.h5")
+model_bcs = load_model("models/bcs_model_MobileNetV2.h5")
 
 def prepare_image_from_bytes(img_bytes, target_size):
     """Convert raw image bytes to preprocessed NumPy array."""
